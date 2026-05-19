@@ -1,0 +1,5 @@
+.DS_Store
+.claude
+out
+node_modules
+*.vsix

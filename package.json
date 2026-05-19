@@ -1,0 +1,50 @@
+{
+  "name": "claude-inline-suggestion",
+  "displayName": "Claude Inline Suggestion",
+  "description": "AI-powered inline code suggestions via Claude",
+  "version": "0.0.1",
+  "publisher": "your-publisher",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Machine Learning",
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "claude-inline-suggestion.inlineEdit",
+        "title": "Claude: Inline Edit"
+      }
+    ],
+    "keybindings": [
+      {
+        "key": "ctrl+i",
+        "mac": "ctrl+i",
+        "command": "claude-inline-suggestion.inlineEdit",
+        "when": "editorTextFocus && !inlineChatFocused"
+      },
+      {
+        "key": "ctrl+shift+i",
+        "mac": "ctrl+shift+i",
+        "command": "claude-inline-suggestion.inlineEdit",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}
