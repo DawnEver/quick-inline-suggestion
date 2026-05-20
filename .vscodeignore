@@ -1,6 +1,13 @@
-.vscode/**
-.gitignore
+node_modules/**
 src/**
 tsconfig.json
-node_modules/**
-.git
+package-lock.json
+.prettierrc
+.gitignore
+**/*.ts
+**/*.map
+icon.svg
+**/.DS_Store
+.claude/
+AGENT.md
+CLAUDE.md

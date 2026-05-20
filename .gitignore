@@ -1,5 +1,6 @@
 .DS_Store
 .claude
-out
+dist
 node_modules
 *.vsix
+package-lock.json

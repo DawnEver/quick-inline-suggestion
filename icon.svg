@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1e2e"/>
+      <stop offset="100%" stop-color="#13131f"/>
+    </linearGradient>
+    <linearGradient id="cursor-glow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d97757"/>
+      <stop offset="100%" stop-color="#c0603a"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="spark-glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="128" height="128" rx="22" ry="22" fill="url(#bg)"/>
+
+  <!-- Subtle inner border -->
+  <rect x="1" y="1" width="126" height="126" rx="21" ry="21"
+        fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+
+  <!-- Code lines: left-aligned, centered vertically -->
+  <!-- Line 1: long -->
+  <rect x="22" y="38" width="52" height="6" rx="3" fill="#4a4a6a" opacity="0.9"/>
+  <!-- Line 2: medium (where cursor sits) -->
+  <rect x="22" y="52" width="36" height="6" rx="3" fill="#6a6a8a" opacity="0.9"/>
+  <!-- Line 3: short -->
+  <rect x="22" y="66" width="44" height="6" rx="3" fill="#4a4a6a" opacity="0.9"/>
+  <!-- Line 4: shorter -->
+  <rect x="22" y="80" width="28" height="6" rx="3" fill="#3a3a5a" opacity="0.7"/>
+
+  <!-- Inline cursor bar on line 2 (after the medium line) -->
+  <rect x="62" y="50" width="4" height="10" rx="2" fill="url(#cursor-glow)" filter="url(#glow)"/>
+
+  <!-- AI sparkle star (top-right area) -->
+  <g transform="translate(88, 38)" filter="url(#spark-glow)">
+    <!-- 4-point star -->
+    <path d="M0,-20 C0,-5 -5,0 -20,0 C-5,0 0,5 0,20 C0,5 5,0 20,0 C5,0 0,-5 0,-20 Z"
+          fill="#d97757" opacity="0.95"/>
+    <!-- small secondary star -->
+    <path d="M0,-8 C0,-2 -2,0 -8,0 C-2,0 0,2 0,8 C0,2 2,0 8,0 C2,0 0,-2 0,-8 Z"
+          fill="#f0b080" opacity="0.85" transform="translate(18, -14)"/>
+  </g>
+</svg>
