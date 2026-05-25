@@ -4,3 +4,13 @@ dist
 node_modules
 *.vsix
 package-lock.json
+yarn.lock
+.vscode-test
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+!.yarn/sdks
+.pnp.cjs
+.pnp.loader.mjs

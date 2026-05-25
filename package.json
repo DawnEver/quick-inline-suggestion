@@ -2,7 +2,7 @@
   "name": "quick-inline-suggestion",
   "displayName": "Quick Inline Suggestion",
   "description": "AI-powered inline code editing — select code, Cmd+I, describe the change, review the diff. Supports Claude Code & OpenAI Codex as backends.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "MingyangBao",
   "icon": "icon.png",
   "license": "MIT",
@@ -42,6 +42,14 @@
       {
         "command": "quick-inline-suggestion.inlineEdit",
         "title": "Quick: Inline Edit"
+      },
+      {
+        "command": "quick-inline-suggestion.selectBackend",
+        "title": "Quick: Select Backend"
+      },
+      {
+        "command": "quick-inline-suggestion.selectModel",
+        "title": "Quick: Select Model"
       }
     ],
     "keybindings": [
@@ -63,9 +71,42 @@
       "properties": {
         "quick-inline-suggestion.backend": {
           "type": "string",
-          "enum": ["claude", "codex"],
+          "enum": [
+            "claude",
+            "codex"
+          ],
           "default": "claude",
           "description": "AI backend: claude (Claude Code) or codex (OpenAI Codex CLI)"
+        },
+        "quick-inline-suggestion.maxHistoryDisplay": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Number of instructions to show in the history dropdown"
+        },
+        "quick-inline-suggestion.historySortBy": {
+          "type": "string",
+          "enum": [
+            "frequent",
+            "recent"
+          ],
+          "enumDescriptions": [
+            "Show most frequently used instructions first",
+            "Show most recently used instructions first"
+          ],
+          "default": "frequent",
+          "description": "How to sort the instruction history dropdown"
+        },
+        "quick-inline-suggestion.claudeModel": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Claude model to use. Leave empty for the default. Use command `Quick: Select Model` or run `claude --help` to see available models (e.g. `claude-sonnet-4-6`, `claude-haiku-4-5`)."
+        },
+        "quick-inline-suggestion.codexModel": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Codex model to use. Leave empty for the default. Use command `Quick: Select Model` or run `codex exec --help` to see available models (e.g. `gpt-5`, `gpt-5-mini`)."
         }
       }
     }
@@ -73,19 +114,31 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p . && npm run fix",
+    "compile:test": "tsc -p tsconfig.test.json",
     "watch": "tsc -watch -p .",
     "format": "prettier --check \"src/**/*.ts\"",
     "fix": "prettier --write \"src/**/*.ts\"",
-    "package": "vsce package -o dist/",
-    "lint": "eslint src --ext ts"
+    "bump": "node scripts/bump-version.mjs",
+    "package": "vsce package --no-dependencies -o dist/",
+    "lint": "eslint src --ext ts",
+    "test:unit": "vitest run",
+    "test:ext": "npm run compile:test && vscode-test",
+    "test": "npm run test:unit && npm run test:ext"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.0",
     "@types/node": "^20.0.0",
+    "@types/sinon": "^17.0.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.0",
     "@vscode/vsce": "^3.9.0",
     "prettier": "^3.8.0",
-    "typescript": "^5.3.0"
+    "sinon": "^19.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^2.0.0"
   },
   "author": "",
-  "type": "commonjs"
+  "type": "commonjs",
+  "packageManager": "yarn@4.15.0"
 }

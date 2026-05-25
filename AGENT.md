@@ -77,3 +77,11 @@ yarn run package
 ```
 
 This compiles TypeScript and packages the extension into `dist/quick-inline-suggestion-x.x.x.vsix`. Do not report the task complete until the build succeeds.
+
+When releasing a new version, bump the version first:
+
+```
+node scripts/bump-version.mjs <version>   # e.g. 0.0.3
+```
+
+Or via npm: `npm run bump <version>`. This updates `package.json` (and `package-lock.json` if present). Then run `yarn run package` to produce the new `.vsix`.
