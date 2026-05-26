@@ -13,7 +13,6 @@ import {
   EXPLAIN_PROMPT,
   MAX_FILE_LINES,
   MAX_FILE_CHARS,
-  ReentryGuard,
 } from "../utils";
 
 describe("isQuestion", () => {
@@ -316,58 +315,5 @@ describe("discoverModels", () => {
     const models = discoverModels("nonexistent-cli", ["--help"], "claude");
     expect(models.length).toBeGreaterThanOrEqual(1);
     expect(models).toContain("claude-sonnet-4-6");
-  });
-});
-
-describe("ReentryGuard", () => {
-  it("tryAcquire returns true on first call", () => {
-    const guard = new ReentryGuard();
-    expect(guard.tryAcquire()).toBe(true);
-    expect(guard.locked).toBe(true);
-  });
-
-  it("tryAcquire returns false when already locked", () => {
-    const guard = new ReentryGuard();
-    guard.tryAcquire();
-    expect(guard.tryAcquire()).toBe(false);
-    expect(guard.locked).toBe(true);
-  });
-
-  it("release unlocks the guard", () => {
-    const guard = new ReentryGuard();
-    guard.tryAcquire();
-    guard.release();
-    expect(guard.locked).toBe(false);
-  });
-
-  it("tryAcquire succeeds after release", () => {
-    const guard = new ReentryGuard();
-    guard.tryAcquire();
-    guard.release();
-    expect(guard.tryAcquire()).toBe(true);
-    expect(guard.locked).toBe(true);
-  });
-
-  it("multiple acquire-release cycles work", () => {
-    const guard = new ReentryGuard();
-    for (let i = 0; i < 5; i++) {
-      expect(guard.tryAcquire()).toBe(true);
-      guard.release();
-      expect(guard.locked).toBe(false);
-    }
-  });
-
-  it("release when not locked is safe (no-op)", () => {
-    const guard = new ReentryGuard();
-    expect(() => guard.release()).not.toThrow();
-    expect(guard.locked).toBe(false);
-  });
-
-  it("double release is safe", () => {
-    const guard = new ReentryGuard();
-    guard.tryAcquire();
-    guard.release();
-    guard.release();
-    expect(guard.locked).toBe(false);
   });
 });

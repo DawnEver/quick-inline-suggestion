@@ -23,4 +23,3 @@ Then run the full workflow above.
 ## Key implementation notes
 
 - **QuickPick ordering**: `resolve()` must be called before `qp.hide()` in `onDidAccept`. `qp.hide()` synchronously triggers `onDidHide` which calls `qp.dispose()` — disposing before resolve corrupts VS Code's internal QuickPick state and prevents future `createQuickPick()` calls.
-- **Reentry guard**: `ReentryGuard` (boolean flag + `tryAcquire`/`release`) in `finally` prevents concurrent invocations of the inline edit command.

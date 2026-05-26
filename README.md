@@ -4,6 +4,9 @@ VS Code extension that brings lightweight AI-powered ask and edit workflows into
 
 Supports [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [OpenAI Codex CLI](https://github.com/openai/codex) as backends.
 
+<img src="images/cover.png" alt="Edit instruction" width="100%" />
+
+
 ## Motivation
 
 Recently, VS Code's built-in AI features have become increasingly bulky. I only wanted the simple inline suggestion workflow from VS Code Copilot: select code, ask for a change, review it, and apply it. So I built this plugin together with Claude Code to keep that experience lightweight and focused.
@@ -16,10 +19,10 @@ Recently, VS Code's built-in AI features have become increasingly bulky. I only 
 - **Diff preview** — review edit-mode changes side-by-side before applying
 - **WorkspaceEdit apply** — accepted edit-mode changes are applied via VS Code's native edit API, keeping undo history intact
 - **Project-aware** — the AI agent runs with the workspace as `cwd`, so it sees your full project context
-- **Instruction history** — recent instructions are recalled and sorted by frequency or recency
+- **Instruction history** — recent instructions are recalled and sorted by frequency or recency, with a clear button to reset history
 - **Auto-fallback** — if the primary backend is unavailable, automatically falls back to the other
 - **Configurable backend** — switch between Claude Code and Codex CLI in settings
-- **Reentry-safe** — QuickPick lock prevents double-trigger from rapid `Cmd+I` presses
+- **Multi-window** — Cmd+I works independently in each editor window without locking
 
 ## Requirements
 
@@ -38,7 +41,11 @@ Recently, VS Code's built-in AI features have become increasingly bulky. I only 
 ### Keybinding conflicts
 
 Official GitHub Copilot and some other extensions also bind `Ctrl+I`. If the shortcut doesn't work, use `Ctrl+Shift+I` or run **Quick: Inline Edit** from the command palette.
-
+## Screenshots
+| Mode | Instruction | Result |
+| :--- | :---: | :---: |
+| Edit | <img src="images/edit.png" alt="Edit instruction" width="100%" /> | <img src="images/edit-diff.png" alt="Edit diff review" width="100%" /> |
+| Ask | <img src="images/ask.png" alt="Ask instruction" width="100%" /> | <img src="images/ask-responce.png" alt="Ask response" width="100%" /> |
 ## Extension Settings
 
 | Setting | Default | Description |
@@ -57,3 +64,5 @@ Search `Quick Inline Suggestion` or download from the [VS Code Marketplace](http
 - [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code)
 - [OpenAI Codex CLI](https://github.com/openai/codex)
 - [VS Code Extension API](https://code.visualstudio.com/api)
+- [Zhihu article](https://zhuanlan.zhihu.com/p/2042829304053109706)
+- [WeChat article](https://mp.weixin.qq.com/s/3jmoiy4oRd_jeUH-7ZhQQg)

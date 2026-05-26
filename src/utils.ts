@@ -3,22 +3,6 @@ import { execSync } from "child_process";
 export type Backend = "claude" | "codex";
 export type Model = string;
 
-/** Simple re-entrancy guard for the inline edit command. */
-export class ReentryGuard {
-  private _locked = false;
-  get locked(): boolean {
-    return this._locked;
-  }
-  tryAcquire(): boolean {
-    if (this._locked) return false;
-    this._locked = true;
-    return true;
-  }
-  release(): void {
-    this._locked = false;
-  }
-}
-
 const FALLBACK_MODELS: Record<Backend, string[]> = {
   claude: ["claude-sonnet-4-6", "claude-haiku-4-5", "claude-opus-4-7"],
   codex: ["gpt-5", "gpt-5-mini", "gpt-5-nano", "o4-mini"],
