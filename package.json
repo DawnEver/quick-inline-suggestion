@@ -121,6 +121,7 @@
     "bump": "node scripts/bump-version.mjs",
     "package": "vsce package --no-dependencies -o dist/",
     "lint": "eslint src --ext ts",
+    "postinstall": "pre-commit install --hook-type pre-commit && pre-commit install --hook-type pre-push",
     "test:unit": "vitest run",
     "test:ext": "npm run compile:test && vscode-test",
     "test": "npm run test:unit && npm run test:ext"

@@ -1,5 +1,7 @@
 .DS_Store
-.claude
+.claude/*
+!.claude/rules/
+!.claude/memory/
 dist
 node_modules
 *.vsix
