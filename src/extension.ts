@@ -1,4 +1,4 @@
-﻿import * as vscode from "vscode";
+import * as vscode from "vscode";
 import * as path from "path";
 import {
   Backend,
@@ -12,7 +12,10 @@ import {
   incrementFreq,
   truncateFileContent,
   discoverModels,
+  DEFAULT_TIMEOUT_MS,
+  MAX_FILE_LINES,
 } from "./utils";
+import type { FileContext } from "./utils";
 import { askAI } from "./subprocess";
 
 const HISTORY_KEY = "instructionHistory";
@@ -73,8 +76,7 @@ async function getInstruction(
   const toItems = (list: string[]) =>
     list.slice(0, maxDisplay).map((h) => ({
       label: h,
-      description:
-        sortBy === "frequent" && freq[h] ? `脳${freq[h]}` : undefined,
+      description: sortBy === "frequent" && freq[h] ? `×${freq[h]}` : undefined,
     }));
 
   return new Promise((resolve) => {
@@ -110,7 +112,7 @@ async function getInstruction(
 
     const safetyTimer = setTimeout(() => {
       qp.hide();
-    }, 120_000);
+    }, DEFAULT_TIMEOUT_MS);
 
     qp.onDidAccept(() => {
       clearTimeout(safetyTimer);
@@ -180,11 +182,35 @@ async function inlineEdit(
     : selection;
   const originalText = doc.getText(sel);
 
-  const fileContext = selectedText ?? truncateFileContent(doc.getText());
+  const fullText = doc.getText();
+  const fileContent = selectedText ?? truncateFileContent(fullText);
+  const isTruncated = !selectedText && fullText !== fileContent;
+  const workspaceRoot = vscode.workspace.getWorkspaceFolder(doc.uri)?.uri
+    .fsPath;
+  const relativePath = workspaceRoot
+    ? path.relative(workspaceRoot, doc.fileName)
+    : fileName;
+
+  const ctx: FileContext = {
+    fileName,
+    relativePath,
+    content: fileContent,
+    startLine: selection.isEmpty ? 1 : selection.start.line + 1,
+    endLine: selection.isEmpty ? doc.lineCount : selection.end.line + 1,
+    isTruncated,
+    isSelection: !selection.isEmpty,
+  };
+
+  if (isTruncated) {
+    vscode.window.showWarningMessage(
+      `File exceeds ${MAX_FILE_LINES} lines or 20,000 characters — AI sees truncated content.`,
+    );
+  }
+
   const isExplain = isQuestion(instruction);
   const promptText = isExplain
-    ? EXPLAIN_PROMPT(fileName, fileContext, instruction)
-    : PROMPT_TEMPLATE(fileName, fileContext, instruction);
+    ? EXPLAIN_PROMPT(ctx, instruction)
+    : PROMPT_TEMPLATE(ctx, instruction);
 
   const abort = new AbortController();
 
@@ -236,11 +262,11 @@ async function inlineEdit(
     const content = [
       `# ${instruction}`,
       ``,
-      `**File:** ${fileName}`,
+      `**File:** ${ctx.relativePath}`,
       ``,
       `**Context:**`,
       "```",
-      fileContext,
+      fileContent,
       "```",
       ``,
       `---`,
@@ -267,7 +293,13 @@ async function inlineEdit(
 
   const applyEdit = new vscode.WorkspaceEdit();
   applyEdit.replace(doc.uri, sel, replacement);
-  await vscode.workspace.applyEdit(applyEdit);
+  const applied = await vscode.workspace.applyEdit(applyEdit);
+  if (!applied) {
+    vscode.window.showErrorMessage(
+      "Failed to apply edit — the file may be read-only.",
+    );
+    return;
+  }
 
   const appliedRange = rangeAfterReplace(sel.start, replacement);
   const versionAfterApply = doc.version;
@@ -297,20 +329,15 @@ async function inlineEdit(
     "Revert",
   );
 
-  // Close the diff tab precisely instead of relying on closeActiveEditor
-  for (const group of vscode.window.tabGroups.all) {
-    for (const tab of group.tabs) {
+  // Close the diff tab opened by this command
+  const editTab = vscode.window.tabGroups.all
+    .flatMap((g) => g.tabs)
+    .find((tab) => {
       const input = tab.input as any;
-      const modPath = input?.modified?.fsPath;
-      const origPath = input?.original?.fsPath;
-      if (
-        modPath === doc.uri.fsPath ||
-        origPath === originalUri.toString() ||
-        (hadSelection && modPath === modifiedUri.toString())
-      ) {
-        await vscode.window.tabGroups.close(tab);
-      }
-    }
+      return input?.original?.toString() === originalUri.toString();
+    });
+  if (editTab) {
+    await vscode.window.tabGroups.close(editTab);
   }
   contentMap.delete(key);
   if (hadSelection) {
@@ -368,7 +395,13 @@ async function selectModel() {
   const backend = getBackend();
   const currentModel = backend === "codex" ? getCodexModel() : getClaudeModel();
 
-  const models = discoverModels(
+  const qp = vscode.window.createQuickPick();
+  qp.placeholder = `Loading models for ${backendLabel(backend)}...`;
+  qp.busy = true;
+  qp.enabled = false;
+  qp.show();
+
+  const models = await discoverModels(
     backend,
     backend === "codex" ? ["exec", "--help"] : ["--help"],
     backend,
@@ -386,12 +419,27 @@ async function selectModel() {
     })),
   ];
 
-  const picked = await vscode.window.showQuickPick(items, {
-    placeHolder: `Select model for ${backendLabel(backend)}`,
-  });
-  if (!picked) return;
+  qp.placeholder = `Select model for ${backendLabel(backend)}`;
+  qp.busy = false;
+  qp.enabled = true;
+  qp.items = items;
 
-  const value = picked.label.startsWith("$(star)") ? "" : picked.label;
+  const picked = await new Promise<readonly vscode.QuickPickItem[] | undefined>(
+    (resolve) => {
+      qp.onDidAccept(() => {
+        resolve(qp.selectedItems);
+        qp.hide();
+      });
+      qp.onDidHide(() => {
+        resolve(undefined);
+        qp.dispose();
+      });
+    },
+  );
+
+  if (!picked || picked.length === 0) return;
+
+  const value = picked[0].label.startsWith("$(star)") ? "" : picked[0].label;
   const key = backend === "codex" ? "codexModel" : "claudeModel";
   await config.update(key, value, vscode.ConfigurationTarget.Global);
   vscode.window.showInformationMessage(

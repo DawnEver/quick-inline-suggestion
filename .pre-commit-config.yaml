@@ -1,0 +1,45 @@
+fail_fast: false
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-illegal-windows-names
+      - id: check-json
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+
+  - repo: local
+    hooks:
+      - id: type-check
+        name: type-check (tsc)
+        entry: yarn run compile
+        language: system
+        pass_filenames: false
+
+      - id: format
+        name: format with prettier
+        entry: yarn prettier --write
+        language: system
+        files: \.(ts|json|md|yaml|yml)$
+        types: [text]
+        pass_filenames: true
+
+      - id: test-unit
+        name: run unit tests
+        entry: yarn run test:unit
+        language: system
+        pass_filenames: false
+
+      - id: test-ext
+        name: run extension integration tests
+        entry: yarn run test:ext
+        language: system
+        stages: [pre-push]
+        pass_filenames: false

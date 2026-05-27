@@ -6,7 +6,6 @@ Supports [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [Open
 
 <img src="images/cover.png" alt="Edit instruction" width="100%" />
 
-
 ## Motivation
 
 Recently, VS Code's built-in AI features have become increasingly bulky. I only wanted the simple inline suggestion workflow from VS Code Copilot: select code, ask for a change, review it, and apply it. So I built this plugin together with Claude Code to keep that experience lightweight and focused.
@@ -41,23 +40,25 @@ Recently, VS Code's built-in AI features have become increasingly bulky. I only 
 ### Keybinding conflicts
 
 Official GitHub Copilot and some other extensions also bind `Ctrl+I`. If the shortcut doesn't work, use `Ctrl+Shift+I` or run **Quick: Inline Edit** from the command palette.
+
 ## Screenshots
-| Mode | Instruction | Result |
-| :--- | :---: | :---: |
+
+| Mode |                            Instruction                            |                                 Result                                 |
+| :--- | :---------------------------------------------------------------: | :--------------------------------------------------------------------: |
 | Edit | <img src="images/edit.png" alt="Edit instruction" width="100%" /> | <img src="images/edit-diff.png" alt="Edit diff review" width="100%" /> |
-| Ask | <img src="images/ask.png" alt="Ask instruction" width="100%" /> | <img src="images/ask-responce.png" alt="Ask response" width="100%" /> |
+| Ask  |  <img src="images/ask.png" alt="Ask instruction" width="100%" />  | <img src="images/ask-responce.png" alt="Ask response" width="100%" />  |
+
 ## Extension Settings
 
-| Setting | Default | Description |
-|---|---|---|
-| `quick-inline-suggestion.backend` | `"claude"` | Primary AI backend: `claude` (Claude Code) or `codex` (OpenAI Codex CLI). Automatically falls back to the other if unavailable. |
-| `quick-inline-suggestion.historySortBy` | `"frequent"` | History dropdown order: `frequent` (most-used first) or `recent` (latest first). Frequent mode shows usage counts (e.g. `×5`). |
-| `quick-inline-suggestion.maxHistoryDisplay` | `3` | Number of history items shown in the dropdown (1–20). |
+| Setting                                     | Default      | Description                                                                                                                     |
+| ------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `quick-inline-suggestion.backend`           | `"claude"`   | Primary AI backend: `claude` (Claude Code) or `codex` (OpenAI Codex CLI). Automatically falls back to the other if unavailable. |
+| `quick-inline-suggestion.historySortBy`     | `"frequent"` | History dropdown order: `frequent` (most-used first) or `recent` (latest first). Frequent mode shows usage counts (e.g. `×5`).  |
+| `quick-inline-suggestion.maxHistoryDisplay` | `3`          | Number of history items shown in the dropdown (1–20).                                                                           |
 
 ## Installation
 
 Search `Quick Inline Suggestion` or download from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=MingyangBao.quick-inline-suggestion).
-
 
 ## Reference
 

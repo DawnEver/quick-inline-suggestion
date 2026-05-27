@@ -7,13 +7,26 @@ import {
   updateHistory,
   incrementFreq,
   truncateFileContent,
-  sanitizeTitle,
   discoverModels,
   PROMPT_TEMPLATE,
   EXPLAIN_PROMPT,
   MAX_FILE_LINES,
   MAX_FILE_CHARS,
 } from "../utils";
+import type { FileContext } from "../utils";
+
+function makeCtx(overrides: Partial<FileContext> = {}): FileContext {
+  return {
+    fileName: "foo.ts",
+    relativePath: "src/foo.ts",
+    content: "const x = 1;",
+    startLine: 1,
+    endLine: 1,
+    isTruncated: false,
+    isSelection: true,
+    ...overrides,
+  };
+}
 
 describe("isQuestion", () => {
   it("returns true for sentences ending with ?", () => {
@@ -186,36 +199,76 @@ describe("backendLabel", () => {
 });
 
 describe("PROMPT_TEMPLATE", () => {
-  it("includes all three inputs", () => {
-    const result = PROMPT_TEMPLATE("foo.ts", "const x = 1;", "add types");
-    expect(result).toContain("foo.ts");
+  it("includes relative path and line numbers", () => {
+    const ctx = makeCtx({
+      relativePath: "src/foo.ts",
+      content: "const x = 1;",
+      startLine: 10,
+      endLine: 12,
+      isSelection: true,
+    });
+    const result = PROMPT_TEMPLATE(ctx, "add types");
+    expect(result).toContain("src/foo.ts:10-12");
     expect(result).toContain("const x = 1;");
     expect(result).toContain("add types");
   });
 
   it("instructs to return only a code block", () => {
-    const result = PROMPT_TEMPLATE("f.ts", "code", "fix");
+    const result = PROMPT_TEMPLATE(makeCtx({ content: "code" }), "fix");
     expect(result).toContain("Only return the modified code");
+  });
+
+  it("shows 'File content' label when not a selection", () => {
+    const result = PROMPT_TEMPLATE(
+      makeCtx({
+        content: "full file",
+        isSelection: false,
+        startLine: 1,
+        endLine: 50,
+      }),
+      "fix",
+    );
+    expect(result).toContain("File content:");
+    expect(result).not.toContain("Selected code:");
+  });
+
+  it("shows truncation note when isTruncated", () => {
+    const result = PROMPT_TEMPLATE(makeCtx({ isTruncated: true }), "fix");
+    expect(result).toContain("truncated");
   });
 });
 
 describe("EXPLAIN_PROMPT", () => {
-  it("includes selected text when provided", () => {
+  it("includes selected text with line numbers", () => {
     const result = EXPLAIN_PROMPT(
-      "foo.ts",
-      "const x = 1;",
+      makeCtx({
+        relativePath: "src/foo.ts",
+        content: "const x = 1;",
+        startLine: 5,
+        endLine: 7,
+        isSelection: true,
+      }),
       "what does this do",
     );
-    expect(result).toContain("foo.ts");
+    expect(result).toContain("src/foo.ts");
+    expect(result).toContain("lines 5-7");
     expect(result).toContain("const x = 1;");
     expect(result).toContain("what does this do");
   });
 
-  it("mentions file only when no selection", () => {
-    const result = EXPLAIN_PROMPT("foo.ts", null, "explain the file");
-    expect(result).toContain("foo.ts");
-    expect(result).not.toContain("selected");
+  it("shows file context when not a selection", () => {
+    const result = EXPLAIN_PROMPT(
+      makeCtx({ isSelection: false, content: "full file content" }),
+      "explain the file",
+    );
+    expect(result).toContain("working in");
+    expect(result).toContain("full file content");
     expect(result).toContain("explain the file");
+  });
+
+  it("shows truncation note when isTruncated", () => {
+    const result = EXPLAIN_PROMPT(makeCtx({ isTruncated: true }), "explain");
+    expect(result).toContain("(truncated)");
   });
 });
 
@@ -239,22 +292,6 @@ describe("truncateFileContent", () => {
     const result = truncateFileContent(big);
     expect(result).toContain("[...file truncated...]");
     expect(result.length).toBeLessThanOrEqual(MAX_FILE_CHARS + 30);
-  });
-});
-
-describe("sanitizeTitle", () => {
-  it("removes URI-unsafe characters", () => {
-    expect(sanitizeTitle("what is foo?")).toBe("what is foo_");
-    expect(sanitizeTitle("path#anchor")).toBe("path_anchor");
-    expect(sanitizeTitle("a/b\\c")).toBe("a_b_c");
-  });
-
-  it("limits length to 50", () => {
-    expect(sanitizeTitle("a".repeat(100)).length).toBe(50);
-  });
-
-  it("handles empty string", () => {
-    expect(sanitizeTitle("")).toBe("");
   });
 });
 
@@ -291,8 +328,12 @@ describe("incrementFreq", () => {
 });
 
 describe("discoverModels", () => {
-  it("returns fallback list when CLI does not exist", () => {
-    const models = discoverModels("nonexistent-cli-xyz", ["--help"], "claude");
+  it("returns fallback list when CLI does not exist", async () => {
+    const models = await discoverModels(
+      "nonexistent-cli-xyz",
+      ["--help"],
+      "claude",
+    );
     expect(models).toEqual([
       "claude-sonnet-4-6",
       "claude-haiku-4-5",
@@ -300,20 +341,12 @@ describe("discoverModels", () => {
     ]);
   });
 
-  it("returns codex fallback list", () => {
-    const models = discoverModels(
+  it("returns codex fallback list", async () => {
+    const models = await discoverModels(
       "nonexistent-cli-xyz",
       ["exec", "--help"],
       "codex",
     );
     expect(models).toEqual(["gpt-5", "gpt-5-mini", "gpt-5-nano", "o4-mini"]);
-  });
-
-  it("extracts models from help output", () => {
-    // discoverModels uses execSync which we can't easily mock.
-    // But we verify the fallback path works correctly for the common case.
-    const models = discoverModels("nonexistent-cli", ["--help"], "claude");
-    expect(models.length).toBeGreaterThanOrEqual(1);
-    expect(models).toContain("claude-sonnet-4-6");
   });
 });

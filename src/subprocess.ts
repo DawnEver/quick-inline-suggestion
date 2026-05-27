@@ -2,7 +2,7 @@ import { spawn as nodeSpawn } from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { Backend, backendLabel } from "./utils";
+import { Backend, backendLabel, DEFAULT_TIMEOUT_MS } from "./utils";
 
 // On Windows, VS Code GUI launches don't inherit the user's shell PATH, so
 // CLIs installed via npm (claude, codex) can't be found by spawn.
@@ -14,8 +14,6 @@ export type SpawnFn = typeof nodeSpawn;
 
 // Pipes prompt via stdin to claude -p (print/non-interactive mode).
 // Avoids arg-length limits, shell injection, and ps leakage.
-const DEFAULT_TIMEOUT_MS = 120_000;
-
 export function askClaude(
   promptText: string,
   cwd: string,

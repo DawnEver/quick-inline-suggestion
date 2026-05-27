@@ -1,7 +1,26 @@
-import { execSync } from "child_process";
+import { exec } from "child_process";
 
 export type Backend = "claude" | "codex";
 export type Model = string;
+
+export const DEFAULT_TIMEOUT_MS = 120_000;
+
+export interface FileContext {
+  /** Bare filename, e.g. "main.ts" */
+  fileName: string;
+  /** Path relative to workspace root, e.g. "src/components/main.ts" */
+  relativePath: string;
+  /** The code content (selected text or full file) */
+  content: string;
+  /** 1-based start line */
+  startLine: number;
+  /** 1-based end line */
+  endLine: number;
+  /** Whether content was truncated */
+  isTruncated: boolean;
+  /** Whether content is a user selection (vs whole file) */
+  isSelection: boolean;
+}
 
 const FALLBACK_MODELS: Record<Backend, string[]> = {
   claude: ["claude-sonnet-4-6", "claude-haiku-4-5", "claude-opus-4-7"],
@@ -9,16 +28,25 @@ const FALLBACK_MODELS: Record<Backend, string[]> = {
 };
 
 /** Run a CLI --help and extract model names from the --model option description. */
-export function discoverModels(
+export async function discoverModels(
   cli: string,
-  helpArgs: string[],
+  args: string[],
   fallback: Backend,
-): string[] {
+): Promise<string[]> {
   try {
-    const out = execSync(`${cli} ${helpArgs.join(" ")} 2>&1`, {
-      timeout: 5000,
-      encoding: "utf8",
-      shell: process.platform === "win32" ? "cmd.exe" : "/bin/sh",
+    const out = await new Promise<string>((resolve, reject) => {
+      exec(
+        `${cli} ${args.join(" ")} 2>&1`,
+        {
+          timeout: 5000,
+          encoding: "utf8",
+          shell: process.platform === "win32" ? "cmd.exe" : "/bin/sh",
+        },
+        (err, stdout) => {
+          if (err) reject(err);
+          else resolve(stdout);
+        },
+      );
     });
     const m = out.match(/--model[= ]*[<\w>-]*\s+.*?\(([^)]+)\)/i);
     if (m) {
@@ -28,7 +56,7 @@ export function discoverModels(
         .filter(Boolean);
     }
   } catch {
-    // CLI not available or help format changed — fall through
+    // CLI not available or help format changed
   }
   return FALLBACK_MODELS[fallback] ?? [];
 }
@@ -47,29 +75,24 @@ export function truncateFileContent(text: string): string {
   return truncated + "\n[...file truncated...]";
 }
 
-export function sanitizeTitle(title: string): string {
-  return title.replace(/[?#/\\<>"|*\r\n]/g, "_").slice(0, 50);
-}
-
-export const PROMPT_TEMPLATE = (
-  fileName: string,
-  selectedText: string,
-  instruction: string,
-) => `\
+export const PROMPT_TEMPLATE = (ctx: FileContext, instruction: string) => {
+  const truncNote = ctx.isTruncated
+    ? " (file was truncated, only the first portion is shown)"
+    : "";
+  const label = ctx.isSelection ? "Selected code" : "File content";
+  return `\
 Only return the modified code wrapped in a single \`\`\`code block. No explanation, no surrounding text.
-File: ${fileName}
-Selected code:
-${selectedText}
+File: ${ctx.relativePath}:${ctx.startLine}-${ctx.endLine}${truncNote}
+${label}:
+${ctx.content}
 Instruction: ${instruction}`;
+};
 
-export const EXPLAIN_PROMPT = (
-  fileName: string,
-  selectedText: string | null,
-  instruction: string,
-) => {
-  const context = selectedText
-    ? `The user selected the following code from ${fileName}:\n${selectedText}`
-    : `The user is working in the file ${fileName}`;
+export const EXPLAIN_PROMPT = (ctx: FileContext, instruction: string) => {
+  const truncNote = ctx.isTruncated ? " (truncated)" : "";
+  const context = ctx.isSelection
+    ? `The user selected lines ${ctx.startLine}-${ctx.endLine} from ${ctx.relativePath}${truncNote}:\n${ctx.content}`
+    : `The user is working in ${ctx.relativePath}${truncNote}.\nFile content:\n${ctx.content}`;
   return `${context}\n\nQuestion: ${instruction}`;
 };
 
