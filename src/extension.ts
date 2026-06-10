@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as os from "os";
 import * as path from "path";
 import {
   Backend,
@@ -43,6 +44,18 @@ function getMaxHistoryDisplay(): number {
 function getHistorySortBy(): "frequent" | "recent" {
   const config = vscode.workspace.getConfiguration("quick-inline-suggestion");
   return config.get<"frequent" | "recent">("historySortBy") ?? "frequent";
+}
+
+// On macOS/Linux launched as a GUI app, PATH may not include user tool dirs.
+// On Windows, spawn needs shell:true to resolve .cmd/.ps1 wrappers.
+function spawnEnv(): NodeJS.ProcessEnv {
+  if (process.platform === "win32") return { ...process.env };
+  const extra = [
+    "/usr/local/bin",
+    `${os.homedir()}/.local/bin`,
+    "/opt/homebrew/bin",
+  ].join(":");
+  return { ...process.env, PATH: `${extra}:${process.env.PATH ?? ""}` };
 }
 
 function getBackend(): Backend {
@@ -152,6 +165,7 @@ async function inlineEdit(
   }
 
   const doc = editor.document;
+  if (doc.lineCount === 0) return;
   const selection = editor.selection;
   const selectedText = selection.isEmpty ? null : doc.getText(selection);
   const fileName = path.basename(doc.fileName);
@@ -165,6 +179,16 @@ async function inlineEdit(
       : `Ask ${configuredLabel} anything about this file`,
   );
   if (!instruction) return;
+
+  // Empty selection + edit intent rewrites the entire file — confirm first.
+  if (!selectedText && !isQuestion(instruction)) {
+    const confirmed = await vscode.window.showWarningMessage(
+      `No selection — ${configuredLabel} will edit the entire file (${fileName}). Continue?`,
+      { modal: true },
+      "Edit whole file",
+    );
+    if (confirmed !== "Edit whole file") return;
+  }
 
   const cwd =
     vscode.workspace.getWorkspaceFolder(doc.uri)?.uri.fsPath ??
@@ -208,6 +232,11 @@ async function inlineEdit(
   }
 
   const isExplain = isQuestion(instruction);
+  if (isExplain) {
+    vscode.window.showInformationMessage(
+      "Treating as a question — answer will open in a new document.",
+    );
+  }
   const promptText = isExplain
     ? EXPLAIN_PROMPT(ctx, instruction)
     : PROMPT_TEMPLATE(ctx, instruction);

@@ -107,6 +107,12 @@
           "type": "string",
           "default": "",
           "markdownDescription": "Codex model to use. Leave empty for the default. Use command `Quick: Select Model` or run `codex exec --help` to see available models (e.g. `gpt-5`, `gpt-5-mini`)."
+        },
+        "quick-inline-suggestion.timeoutSeconds": {
+          "type": "number",
+          "default": 60,
+          "minimum": 10,
+          "description": "Hard timeout in seconds for AI subprocess calls (claude/codex)."
         }
       }
     }
