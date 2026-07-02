@@ -177,14 +177,15 @@ suite("Extension manifest", () => {
     assert.ok(keys.includes("ctrl+shift+i"));
   });
 
-  test("contributes 5 configuration properties", () => {
+  test("contributes 6 configuration properties", () => {
     const props = pkg.contributes.configuration.properties;
     assert.ok(props);
-    assert.strictEqual(Object.keys(props).length, 5);
+    assert.strictEqual(Object.keys(props).length, 6);
     assert.ok("quick-inline-suggestion.backend" in props);
     assert.ok("quick-inline-suggestion.maxHistoryDisplay" in props);
     assert.ok("quick-inline-suggestion.historySortBy" in props);
     assert.ok("quick-inline-suggestion.claudeModel" in props);
     assert.ok("quick-inline-suggestion.codexModel" in props);
+    assert.ok("quick-inline-suggestion.timeoutSeconds" in props);
   });
 });
