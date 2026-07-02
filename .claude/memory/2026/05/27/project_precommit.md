@@ -5,9 +5,6 @@ metadata:
   node_type: memory
   type: project
   originSessionId: e0e4fcbe-f679-42c0-a169-667148f4fc6e
-created: 2026-05-27
-accessed: 2026-05-27
-tier: short
 ---
 
 pre-commit hooks are configured in `.pre-commit-config.yaml` with two stages:

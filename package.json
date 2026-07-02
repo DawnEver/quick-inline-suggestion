@@ -2,7 +2,7 @@
   "name": "quick-inline-suggestion",
   "displayName": "Quick Inline Suggestion",
   "description": "AI-powered inline code editing — select code, Cmd+I, describe the change, review the diff. Supports Claude Code & OpenAI Codex as backends.",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "MingyangBao",
   "icon": "icon.png",
   "license": "MIT",

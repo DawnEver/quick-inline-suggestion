@@ -5,9 +5,6 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 4a75fab8-0995-47a0-87f1-a3004c0a880f
-created: 2026-05-27
-accessed: 2026-05-27
-tier: short
 ---
 
 Two-layer test setup added:

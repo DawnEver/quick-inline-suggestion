@@ -48,6 +48,15 @@ Official GitHub Copilot and some other extensions also bind `Ctrl+I`. If the sho
 | Edit | <img src="images/edit.png" alt="Edit instruction" width="100%" /> | <img src="images/edit-diff.png" alt="Edit diff review" width="100%" /> |
 | Ask  |  <img src="images/ask.png" alt="Ask instruction" width="100%" />  | <img src="images/ask-responce.png" alt="Ask response" width="100%" />  |
 
+## Limitations
+
+- **Not real inline/ghost-text completion** — unlike Copilot-style Tab completion, this extension is a manual, instruction-driven workflow: you select code, explicitly trigger it (`Cmd+I`), and describe what you want. There's no automatic as-you-type suggestion.
+- **Latency** — each request spawns a full CLI agent process (`claude -p` / `codex exec`), which is slower than a dedicated completion model. Expect seconds, not milliseconds.
+
+## Roadmap
+
+- **Tab completion** — add true inline/ghost-text completion (accept with `Tab`) alongside the current instruction-driven workflow, for lightweight as-you-type suggestions.
+
 ## Extension Settings
 
 | Setting                                     | Default      | Description                                                                                                                     |

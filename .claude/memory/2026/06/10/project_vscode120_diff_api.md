@@ -3,9 +3,6 @@ name: vscode-120-diff-api-evaluation
 description: VS Code 1.120 getTextDiff proposed API — evaluated, not adopting
 metadata:
   type: project
-created: 2026-06-10
-accessed: 2026-06-10
-tier: short
 ---
 
 # VS Code 1.120 Document Diff API — Evaluated, Not Adopting
